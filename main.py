@@ -4,8 +4,7 @@ import os
 import threading
 from helpers import countdown, speak
 
-# Parameteres
-microphone = "Scarlett Solo USB: Audio (hw:1,0)"
+# Parameters
 timeout = 5
 
 # set up OpenAI API credentials
@@ -19,10 +18,17 @@ mic = sr.Microphone()
 
 # get the device index of your microphone
 mic_index = None
-for i, microphone_name in enumerate(sr.Microphone.list_microphone_names()):
-    if microphone in microphone_name:
-        mic_index = i
+microphone_names = sr.Microphone.list_microphone_names()
+while True:
+    for i, microphone_name in enumerate(microphone_names):
+        print(f"{i}: {microphone_name}")
+    selected_index = input("Please select a microphone index: ")
+    if selected_index.isdigit() and int(selected_index) < len(microphone_names):
+        mic_index = int(selected_index)
+        print(f"Selected microphone: {microphone_names[mic_index]}")
         break
+    else:
+        print("Invalid input.")
 
 # if your microphone was not found, raise an error
 if mic_index is None:

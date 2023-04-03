@@ -4,6 +4,6 @@ Text-to-speech interface with ChatGPT
 
 ## Requirements
 
-Python 3.10
-portaudio19-dev
-python-all-dev
+Python 3.10 <br>
+portaudio19-dev <br>
+python-all-dev <br>

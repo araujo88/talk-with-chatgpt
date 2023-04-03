@@ -29,8 +29,8 @@ if mic_index is None:
 mic = sr.Microphone(device_index=mic_index)
 
 # adjust for ambient noise
-with mic as source:
-    r.adjust_for_ambient_noise(source)
+# with mic as source:
+#     r.adjust_for_ambient_noise(source)
 
 
 def speak(text):
@@ -54,11 +54,10 @@ def speak(text):
 # start listening for speech
 with mic as source:
     while True:
-        print("Listening ...")
-        audio = r.listen(source, timeout=10)
-
         # recognize speech using Google Speech Recognition
         try:
+            print("Listening ...")
+            audio = r.listen(source, timeout=10)
             text = r.recognize_google(audio)
             print(f"You said: {text}")
 
@@ -68,7 +67,7 @@ with mic as source:
                 prompt=text,
                 max_tokens=100,
                 n=1,
-                stop=None,
+                stop=".",
                 temperature=0.7,
                 top_p=1,
             )
@@ -78,6 +77,10 @@ with mic as source:
             speak(response.choices[0].text.strip())
 
         except AssertionError:
+            print("Could not understand audio.")
+            continue
+        except sr.WaitTimeoutError:
+            print("Could not understand audio.")
             continue
         except sr.UnknownValueError:
             print("Could not understand audio.")

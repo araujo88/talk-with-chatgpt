@@ -1,9 +1,12 @@
 import openai
 import speech_recognition as sr
 import os
-from playsound import playsound
-from gtts import gTTS
+import threading
+from helpers import countdown, speak
 
+# Parameteres
+microphone = "Scarlett Solo USB: Audio (hw:1,0)"
+timeout = 5
 
 # set up OpenAI API credentials
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -17,7 +20,7 @@ mic = sr.Microphone()
 # get the device index of your microphone
 mic_index = None
 for i, microphone_name in enumerate(sr.Microphone.list_microphone_names()):
-    if "Scarlett Solo USB: Audio (hw:1,0)" in microphone_name:
+    if microphone in microphone_name:
         mic_index = i
         break
 
@@ -29,27 +32,10 @@ if mic_index is None:
 mic = sr.Microphone(device_index=mic_index)
 
 # adjust for ambient noise
-# with mic as source:
-#     r.adjust_for_ambient_noise(source)
+with mic as source:
+    r.adjust_for_ambient_noise(source)
 
-
-def speak(text):
-    # Language in which you want to convert
-    language = 'en'
-
-    # Passing the text and language to the engine,
-    # here we have marked slow=False. Which tells
-    # the module that the converted audio should
-    # have a high speed
-    myobj = gTTS(text=text, lang=language, slow=False)
-
-    # Saving the converted audio in a mp3 file named
-    # welcome
-    myobj.save("computer_voice.mp3")
-
-    # Playing the converted file
-    playsound("computer_voice.mp3")
-
+history = []
 
 # start listening for speech
 with mic as source:
@@ -57,17 +43,19 @@ with mic as source:
         # recognize speech using Google Speech Recognition
         try:
             print("Listening ...")
-            audio = r.listen(source, timeout=10)
-            text = r.recognize_google(audio)
+            # threading.Thread(countdown(timeout))
+            audio = r.listen(source, timeout=timeout)
+            text = r.recognize_whisper(audio)
+            history.append(text)
             print(f"You said: {text}")
 
             # call OpenAI GPT-3 API to generate response
             response = openai.Completion.create(
                 model="text-davinci-003",
-                prompt=text,
+                prompt="\n".join(history),
                 max_tokens=100,
                 n=1,
-                stop=".",
+                # stop=".",
                 temperature=0.7,
                 top_p=1,
             )
